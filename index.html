@@ -75,7 +75,9 @@
   <div id="log"></div>
 
   <script>
-     const contractABI = [
+    let provider, signer, contract;
+    const contractAddress = "0x98FA2A393Bf5C297FE29E160B244b560a61d9976";
+    const contractABI = [
 	{
 		"inputs": [
 			{
@@ -273,12 +275,23 @@
 		"type": "function"
 	}
 ];
+
     const tokens = {
       WETH: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
       WBTC: "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
       DAI: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
       SHIB: "0x6f8A06447ff6fcf75A5fCdb3f8c4BAb2da4fC0D0",
       UNI: "0xb33EaAd8d922B1083446DC23f610c2567fB5180f"
+    };
+
+    document.getElementById("connectWallet").onclick = async () => {
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = provider.getSigner();
+      const walletAddress = await signer.getAddress();
+      document.getElementById("wallet").textContent = walletAddress;
+      contract = new ethers.Contract(contractAddress, contractABI, signer);
+      log("✅ Wallet connected: " + walletAddress);
     };
 
     async function runBatch() {
@@ -314,7 +327,6 @@
         );
         const receipt = await tx.wait();
         log("✅ Confirmed: " + receipt.transactionHash);
-        updateBalances();
         showInResults(tokenSymbol, "QuickSwap", "SushiSwap", buyPrice, sellPrice, profitUsd, profitPct, receipt.transactionHash, true);
       } catch (e) {
         log("⚠️ Trade failed: " + e.message);
@@ -346,3 +358,4 @@
   </script>
 </body>
 </html>
+
